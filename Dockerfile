@@ -83,6 +83,16 @@ RUN python3 -m venv --system-site-packages /opt/kibot-venv && \
 
 ENV PATH="/opt/kibot-venv/bin:${PATH}"
 
+# Carried over from the inti-cmnb base this image replaced, where it lived in
+# /etc/gitconfig and was easy to miss.
+#
+# GitHub Actions container jobs run as root against a workspace owned by the
+# runner user, so without safe.directory every actions/checkout fails with
+# "detected dubious ownership" and exit 128. The file protocol allowance is
+# needed for submodules resolved via local paths, which git blocks by default.
+RUN git config --system --add safe.directory '*' && \
+    git config --system protocol.file.allow always
+
 # Boards still carry v9-era ${KICAD9_*_DIR} paths for their 3D models. KiCad 10
 # only defines KICAD10_*, so those models resolve to nothing and drop out of the
 # renders without failing the build. Define both until the files are migrated.
